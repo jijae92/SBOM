@@ -1,0 +1,8 @@
+boto3
+requests
+pyyaml
+tabulate
+jinja2
+packaging
+pytest
+pytest-cov

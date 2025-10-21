@@ -1,0 +1,14 @@
+.PHONY: install test scan clean
+
+install:
+	pip install -r requirements.txt
+	touch .installed
+
+test:
+	pytest
+
+scan:
+	python -m scanner.cli demo-image:latest --report-dir reports/manual
+
+clean:
+	rm -rf reports/manual reports/demo

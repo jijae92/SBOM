@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.installed
+.venv/
+reports/
+.aws-sam/

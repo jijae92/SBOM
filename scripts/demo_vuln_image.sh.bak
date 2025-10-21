@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+IMAGE="demo-vuln:latest"
+REPORT_DIR="${REPORT_DIR:-reports/demo}" 
+
+echo "Running vulnerable scan for ${IMAGE}"
+python -m scanner.cli "${IMAGE}" --report-dir "${REPORT_DIR}/before"
+
+echo "Simulating remediation..."
+sleep 1
+
+echo "Re-running scan after remediation"
+python -m scanner.cli "${IMAGE}-patched" --report-dir "${REPORT_DIR}/after"

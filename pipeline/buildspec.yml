@@ -1,0 +1,34 @@
+version: 0.2
+env:
+  variables:
+    SCANNER: "grype"
+    SBOM_FORMAT: "cyclonedx-json"
+    IMAGE_LIST: "images.txt"
+    REPORTS_BUCKET: ""
+    OUTPUT_PREFIX: ""
+    FAIL_ON: "HIGH"
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - pip install -r requirements.txt
+      - bash scripts/install_tools.sh
+  pre_build:
+    commands:
+      - echo "== Meta & login =="
+      - export GIT_SHA=$(git rev-parse --short HEAD || echo "nogit")
+      - mkdir -p artifacts reports
+  build:
+    commands:
+      - echo "== Scan images from ${IMAGE_LIST} =="
+      - bash scripts/scan_image.sh "${IMAGE_LIST}" "${SCANNER}" "${SBOM_FORMAT}"
+      - python -m scanner --collect reports --fail-on ${FAIL_ON} --out reports/summary.json --sarif reports/summary.sarif
+  post_build:
+    commands:
+      - echo "== Upload S3 =="
+      - aws s3 cp --recursive reports "s3://${REPORTS_BUCKET}/${OUTPUT_PREFIX}/${GIT_SHA}/"
+artifacts:
+  files:
+    - reports/**/*
+  discard-paths: no

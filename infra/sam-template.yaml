@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SBOM vulnerability report pipeline with S3 ingestion and notifier.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: sbom-sentinel
+  ReportsBucketName:
+    Type: String
+    Default: sbom-reports-<random>
+  AlertMinSeverity:
+    Type: String
+    Default: HIGH
+    AllowedValues: [INFO, LOW, MEDIUM, HIGH, CRITICAL]
+  SlackWebhookUrl:
+    Type: String
+    Default: ""
+  TopicEmail:
+    Type: String
+    Default: ""
+
+Conditions:
+  HasEmail: !Not [!Equals [!Ref TopicEmail, ""]]
+
+Resources:
+  ReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ReportsBucketName
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldReports
+            Status: Enabled
+            ExpirationInDays: 90
+
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${ProjectName}-alerts"
+
+  AlertsSubscription:
+    Condition: HasEmail
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      Endpoint: !Ref TopicEmail
+      TopicArn: !Ref AlertsTopic
+
+  NotifierFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-notifier"
+      Runtime: python3.11
+      Handler: lambda.sbom_notifier.handler
+      CodeUri: ../
+      MemorySize: 512
+      Timeout: 30
+      Environment:
+        Variables:
+          ALERT_MIN_SEVERITY: !Ref AlertMinSeverity
+          SNS_TOPIC_ARN: !Ref AlertsTopic
+          SLACK_WEBHOOK_URL: !Ref SlackWebhookUrl
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt AlertsTopic.TopicName
+        - S3ReadPolicy:
+            BucketName: !Ref ReportsBucketName
+        - CloudWatchLogsFullAccess
+      Events:
+        NewReport:
+          Type: S3
+          Properties:
+            Bucket: !Ref ReportsBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: ".json"
+
+Outputs:
+  ReportsBucketName:
+    Value: !Ref ReportsBucketName
+  AlertsTopicArn:
+    Value: !Ref AlertsTopic
+  NotifierFunctionArn:
+    Value: !GetAtt NotifierFunction.Arn

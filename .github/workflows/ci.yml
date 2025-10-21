@@ -1,0 +1,24 @@
+name: sbom-scan
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: bash scripts/install_tools.sh
+      - run: echo "nginx:1.25-alpine" > images.txt
+      - run: bash scripts/scan_image.sh images.txt grype cyclonedx-json
+      - run: python -m scanner --collect reports --fail-on HIGH --out reports/summary.json --sarif reports/summary.sarif
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-reports
+          path: reports

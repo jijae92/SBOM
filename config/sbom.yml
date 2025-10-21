@@ -1,0 +1,4 @@
+format: cyclonedx-json
+syft:
+  output: reports/sbom.json
+  extra_args: []

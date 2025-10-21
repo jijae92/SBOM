@@ -1,0 +1,8 @@
+rules:
+  - ids:
+      - "CVE-2099-0001"
+    packages:
+      - "pkg:apk/alpine/whatever@1.2.3"
+      - "openssl"
+    until: "2099-12-31"
+    reason: "개발 환경 예외(만료일 이후 자동 무효)"
