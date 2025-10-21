@@ -4,7 +4,7 @@
 
 # SBOM — **취약 패키지 감시 / 종속성 투명화**
 
-**한 줄 소개**: Syft로 **SBOM 생성** → Grype/Trivy로 **CVE 매칭** → **우선순위 산정/리포트** → CodeBuild가 **S3에 저장** → **S3 이벤트 → Lambda 알림** 파이프라인 데모/스캐폴드. ([GitHub][1])
+**한 줄 소개**: Syft로 **SBOM 생성** → Grype/Trivy로 **CVE 매칭** → **우선순위 산정/리포트** → CodeBuild가 **S3에 저장** → **S3 이벤트 → Lambda 알림** 파이프라인 데모/스캐폴드. 
 
 ---
 
