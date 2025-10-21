@@ -144,21 +144,8 @@ sam build && sam deploy --guided
 
 ## 4) 아키텍처 개요(Architecture)
 
-```mermaid
-flowchart LR
-  Dev[Developer] -->|commit/push| Repo[Git Repo]
-  Repo -->|CI Trigger| CI[CI/CD (CodeBuild or GH Actions)]
-  CI --> Syft[Syft: SBOM 생성]
-  Syft --> Matcher[Grype/Trivy: CVE 매칭]
-  Matcher --> Merge[우선순위/중복 병합]
-  Merge --> Report[보고서 JSON/MD/HTML]
-  Report --> S3[(S3 Reports)]
-  S3 -->|PutObject Event| Notifier[Lambda 알림]
-  Notifier --> SNS[SNS/Slack/Webhook]
+<img width="1886" height="78" alt="image" src="https://github.com/user-attachments/assets/e76a2593-5baf-48fa-84c8-8fe040ddd467" />
 
-  classDef a fill:#eef,stroke:#99f;
-  class Syft,Matcher,Merge,Report a;
-```
 
 **의존 서비스**
 
